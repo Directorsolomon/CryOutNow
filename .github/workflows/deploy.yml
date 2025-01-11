@@ -20,23 +20,26 @@ jobs:
     - name: Install Dependencies
       run: |
         cd backend
-        npm ci
+        npm install
     
     - name: Build Backend
       run: |
         cd backend
         npm run build
+      env:
+        NODE_ENV: production
     
     - name: Deploy to Railway
       run: |
         npm install -g @railway/cli
         cd backend
-        railway up
+        railway up --service ${{ secrets.RAILWAY_SERVICE_NAME }}
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
   
   deploy-frontend:
     runs-on: ubuntu-latest
+    needs: deploy-backend
     
     steps:
     - uses: actions/checkout@v3
@@ -48,11 +51,15 @@ jobs:
         cache: 'npm'
     
     - name: Install Dependencies
-      run: npm ci
+      run: |
+        npm install
+        npm install -D @vitejs/plugin-react-swc
     
     - name: Build
       run: npm run build
       env:
+        CI: false
+        NODE_ENV: production
         VITE_API_URL: ${{ secrets.VITE_API_URL }}
     
     - name: Deploy to Vercel
@@ -60,4 +67,5 @@ jobs:
       with:
         vercel-token: ${{ secrets.VERCEL_TOKEN }}
         vercel-args: '--prod'
-        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }} 
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: ./ 

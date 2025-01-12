@@ -12,10 +12,15 @@ export function PrayerRequestList() {
     loadPrayerRequests();
   }, []);
 
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const PER_PAGE = 10;
+
   const loadPrayerRequests = async () => {
     try {
-      const recentRequests = await getRecentPrayerRequests(20);
-      setRequests(recentRequests);
+      const recentRequests = await getRecentPrayerRequests(PER_PAGE, page);
+      setRequests(prev => page === 1 ? recentRequests : [...prev, ...recentRequests]);
+      setHasMore(recentRequests.length === PER_PAGE);
     } catch (error) {
       console.error("Error loading prayer requests:", error);
       toast({

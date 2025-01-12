@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LogoutButton } from '../auth/LogoutButton';
 import { useState } from 'react';
 import { cn } from "../../lib/utils";
+import { ThemeToggle } from "../theme/ThemeToggle"; // Added import
 
 export const Header = () => {
   const { user, loading } = useAuth();
@@ -62,6 +63,7 @@ export const Header = () => {
           >
             {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
+          <ThemeToggle /> {/* Added ThemeToggle */}
         </nav>
 
         {/* Mobile Navigation */}

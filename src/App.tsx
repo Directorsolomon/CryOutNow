@@ -49,7 +49,7 @@ import { ThemeProvider } from 'next-themes'
 
 const App = () => (
   <ErrorBoundary>
-    <ThemeProvider defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>

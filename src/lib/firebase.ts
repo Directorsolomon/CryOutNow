@@ -12,7 +12,9 @@ import { getFirestore } from 'firebase/firestore';
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "cryoutnow-6ce3d.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  projectId: "cryoutnow-6ce3d",
+  storageBucket: "cryoutnow-6ce3d.appspot.com",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 

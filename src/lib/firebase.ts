@@ -2,6 +2,12 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
+// Initialize Google Auth Provider
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
 export const googleProvider = new GoogleAuthProvider();
 import { getFirestore } from 'firebase/firestore';
 

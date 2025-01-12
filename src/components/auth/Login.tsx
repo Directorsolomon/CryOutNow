@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider } from '../../lib/firebase';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../ui/button';
@@ -13,7 +14,7 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
@@ -28,46 +29,61 @@ export function Login() {
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      {error && <p className="text-red-500">{error}</p>}
-      <Button type="submit" disabled={loading || !!user} className="w-full">
-        {loading ? 'Logging in...' : 'Login'}
-      </Button>
+  const handleGoogleLogin = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      setError('Failed to sign in with Google');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      <div className="relative my-4">
+  return (
+    <div className="space-y-6">
+      <form onSubmit={handleEmailLogin} className="space-y-4">
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <Button type="submit" disabled={loading || !!user} className="w-full">
+          {loading ? 'Signing in...' : 'Sign in with Email'}
+        </Button>
+      </form>
+
+      <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        onClick={() => signInWithPopup(auth, googleProvider)}
+        onClick={handleGoogleLogin}
         disabled={loading || !!user}
         className="w-full"
       >
@@ -91,6 +107,6 @@ export function Login() {
         </svg>
         Continue with Google
       </Button>
-    </form>
+    </div>
   );
 }

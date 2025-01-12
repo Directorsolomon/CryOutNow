@@ -10,13 +10,12 @@ googleProvider.setCustomParameters({
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  apiKey: "AIZoSyB4DXu6QgsauzorREWoe5rDzRE-JqZiOLU",
   authDomain: "cryoutnow-6ce3d.firebaseapp.com",
   projectId: "cryoutnow-6ce3d",
-  storageBucket: "cryoutnow-6ce3d.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID // Added for analytics
+  storageBucket: "cryoutnow-6ce3d.firebasestorage.app",
+  messagingSenderId: "251194871352",
+  appId: "1:251194871352:web:c0e5056438f2e5e1d3e0cd"
 };
 
 // Initialize Firebase

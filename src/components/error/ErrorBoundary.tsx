@@ -29,25 +29,26 @@ export class ErrorBoundary extends React.Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="max-w-md w-full p-8 text-center">
-            <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
-            <p className="text-muted-foreground mb-6">
-              We're sorry, but something went wrong. We've been notified and will fix this as soon as possible.
-            </p>
-            <Button
-              onClick={() => {
-                this.setState({ hasError: false });
-                window.location.href = '/';
-              }}
-            >
-              Return Home
-            </Button>
+        <div className="p-4 max-w-xl mx-auto mt-8">
+          <div className="bg-red-100 text-red-700 p-4 rounded relative" role="alert">
+            <strong className="font-bold">Something went wrong</strong>
+            <span className="block sm:inline">
+              {this.state.error?.message || 'An unexpected error occurred'}
+            </span>
+            <span className="absolute top-0 bottom-0 right-0 px-4 py-3">
+              <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M10 8.586L2.929 1.515 1.515 2.929 8.586 10l-7.071 7.071 1.414 1.414L10 11.414l7.071 7.071 1.414-1.414L11.414 10l7.071-7.071-1.414-1.414L10 8.586z"/></svg>
+            </span>
           </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+          >
+            Reload Page
+          </button>
         </div>
       );
     }
 
     return this.props.children;
   }
-} 
+}

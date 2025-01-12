@@ -21,7 +21,17 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100 // limit each IP to 100 requests per windowMs
 })
-app.use(limiter)
+// Apply stricter rate limiting to auth routes
+app.use('/api/auth', rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5 // 5 requests per window
+}));
+
+// Apply general rate limiting to other routes
+app.use(rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 100 // 100 requests per window
+}));
 
 // Swagger Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))

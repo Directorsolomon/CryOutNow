@@ -51,7 +51,7 @@ export const authenticateGoogleCallback = passport.authenticate('google', {
 export const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    
+
     if (!token) {
       throw new AppError('No token provided', 401);
     }
@@ -62,4 +62,28 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   } catch (error) {
     next(new AppError('Invalid or expired token', 401));
   }
-}; 
+};
+
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+
+    const decoded = await AuthService.verifyIdToken(token); // Assuming AuthService has this method
+    if (!decoded.uid) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    req.user = {
+      uid: decoded.uid,
+      email: decoded.email,
+      role: decoded.role || 'user'
+    };
+
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Unauthorized access' });
+  }
+};

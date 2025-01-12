@@ -1,4 +1,4 @@
-import { Button } from "@components/ui/button";
+import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
 import { Home, Menu, X } from "lucide-react";
 import { useAuth } from '../../context/AuthContext';

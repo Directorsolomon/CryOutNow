@@ -24,7 +24,3 @@ export const trackEvent = (eventName: string, params?: object) => {
     console.error('Failed to track event:', error);
   }
 };
-
-export const trackPageView = (pageName: string) => {
-  trackEvent('page_view', { page_name: pageName });
-};

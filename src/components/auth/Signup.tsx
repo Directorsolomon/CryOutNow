@@ -22,12 +22,28 @@ export function Signup() {
       return setError('Passwords do not match');
     }
 
+    if (!email || !password || !confirmPassword) {
+      return setError('All fields are required');
+    }
+
+    if (password.length < 6) {
+      return setError('Password must be at least 6 characters');
+    }
+
     setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      setError('Failed to create account');
-      console.error(error);
+    } catch (error: any) {
+      if (error.code === 'auth/email-already-in-use') {
+        setError('Email already registered');
+      } else if (error.code === 'auth/invalid-email') {
+        setError('Invalid email address');
+      } else if (error.code === 'auth/weak-password') {
+        setError('Password is too weak');
+      } else {
+        setError('Failed to create account. Please try again.');
+        console.error('Registration error:', error);
+      }
     } finally {
       setLoading(false);
     }

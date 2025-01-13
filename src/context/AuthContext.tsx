@@ -1,6 +1,10 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
+import { 
+  User, 
+  onAuthStateChanged, 
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
 import { auth } from '../lib/firebase';
 
 type AuthContextType = {
@@ -8,6 +12,8 @@ type AuthContextType = {
   loading: boolean;
   error: string | null;
   setError: (error: string | null) => void;
+  login: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -15,6 +21,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   error: null,
   setError: () => {},
+  login: async () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -23,13 +31,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Firebase initialization check
+    if (!auth) {
+      setError('Firebase authentication is not initialized');
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
         setUser(user);
         setLoading(false);
+        setError(null); // Clear any previous errors
       },
       (error) => {
+        console.error('Auth state change error:', error);
         setError(error.message);
         setLoading(false);
       }
@@ -38,11 +55,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const login = async (email: string, password: string) => {
+    try {
+      setError(null);
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+        throw new Error('Invalid email or password');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Too many failed attempts. Please try again later');
+      } else {
+        throw new Error('Failed to sign in. Please try again');
+      }
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setError(null);
+      await firebaseSignOut(auth);
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      throw new Error('Failed to sign out');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, setError }}>
+    <AuthContext.Provider 
+      value={{ 
+        user, 
+        loading, 
+        error, 
+        setError,
+        login,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

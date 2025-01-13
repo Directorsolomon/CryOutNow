@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleSignIn } from './GoogleSignIn';
+import { Separator } from '@/components/ui/separator';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -58,15 +60,17 @@ export default function Login() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
 
-        {loading && (
-          <Alert className="mt-4">
-            <AlertDescription>Signing you in...</AlertDescription>
-          </Alert>
-        )}
+        <div className="my-4 flex items-center">
+          <Separator className="flex-grow" />
+          <span className="mx-4 text-sm text-muted-foreground">or</span>
+          <Separator className="flex-grow" />
+        </div>
+
+        <GoogleSignIn />
       </Card>
     </div>
   );

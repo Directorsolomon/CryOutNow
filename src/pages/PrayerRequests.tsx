@@ -3,7 +3,7 @@ import { PrayerRequestList } from "../components/prayer-requests/PrayerRequestLi
 import { CreatePrayerRequest } from "../components/prayer-requests/CreatePrayerRequest";
 import { Button } from "../components/ui/button";
 import { Plus } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function PrayerRequests() {

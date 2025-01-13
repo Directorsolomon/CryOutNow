@@ -1,3 +1,8 @@
+/**
+ * @file Header.tsx
+ * @description Main navigation header component
+ */
+
 import { Button } from "../ui/button";
 import { Link } from "react-router-dom";
 import { Home, Menu, X } from "lucide-react";
@@ -5,7 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LogoutButton } from '../auth/LogoutButton';
 import { useState } from 'react';
 import { cn } from "../../lib/utils";
-import { ThemeToggle } from "../theme/ThemeToggle"; // Added import
+import { ThemeToggle } from "../theme/ThemeToggle";
 
 export const Header = () => {
   const { user, loading } = useAuth();
@@ -14,6 +19,7 @@ export const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const navigationItems = [
+    { label: "Home", href: "/" },
     { label: "Prayer Requests", href: "/prayer-requests" },
     ...(user 
       ? [{ label: "My Profile", href: "/profile" }]
@@ -53,17 +59,20 @@ export const Header = () => {
               </Button>
             )}
             {user && <LogoutButton />}
+            <ThemeToggle />
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground"
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-          <ThemeToggle /> {/* Added ThemeToggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              className="p-2 -mr-2 text-muted-foreground hover:text-foreground"
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </nav>
 
         {/* Mobile Navigation */}

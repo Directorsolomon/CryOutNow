@@ -23,6 +23,7 @@ const Index = React.lazy(() => import("./pages/Index"));
 const Login = React.lazy(() => import("./pages/Login"));
 const Register = React.lazy(() => import("./pages/Register"));
 const Profile = React.lazy(() => import("./pages/Profile"));
+const Dashboard = React.lazy(() => import("./pages/Dashboard"));
 const PrayerRequestsPage = React.lazy(() => 
   import("./features/prayer-requests/pages/PrayerRequestsPage").then(mod => ({
     default: mod.PrayerRequestsPage
@@ -68,6 +69,14 @@ function AppRoutes() {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/profile"
             element={

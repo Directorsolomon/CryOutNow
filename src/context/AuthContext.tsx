@@ -3,6 +3,7 @@ import {
   User, 
   onAuthStateChanged, 
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
@@ -13,6 +14,7 @@ type AuthContextType = {
   error: string | null;
   setError: (error: string | null) => void;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -22,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   error: null,
   setError: () => {},
   login: async () => {},
+  register: async () => {},
   signOut: async () => {},
 });
 
@@ -54,6 +57,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => unsubscribe();
   }, []);
+
+  const register = async (email: string, password: string) => {
+    try {
+      setError(null);
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('Email is already registered');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Invalid email address');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('Password is too weak');
+      } else {
+        throw new Error('Failed to create account');
+      }
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -89,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error, 
         setError,
         login,
+        register,
         signOut,
       }}
     >

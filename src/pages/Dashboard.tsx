@@ -2,7 +2,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from '@/components/ui/button';
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-2xl font-bold">Please log in to view the dashboard</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">

@@ -10,6 +10,16 @@ import { PrayerRequest, PrayerRequestStatus } from '../types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Heart,
   Clock,
@@ -17,13 +27,14 @@ import {
   Unlock,
   CheckCircle2,
   Archive,
+  Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 interface PrayerRequestCardProps {
   request: PrayerRequest;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  onEdit?: (e: React.MouseEvent) => void;
+  onDelete?: (e: React.MouseEvent) => void;
 }
 
 const statusIcons = {
@@ -48,12 +59,14 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
   const recordPrayer = useRecordPrayer();
   const removePrayer = useRemovePrayer();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const isOwner = user?.uid === request.userId;
   const hasPrayed = request.prayingUsers.includes(user?.uid || '');
   const timeAgo = formatDistanceToNow(request.createdAt, { addSuffix: true });
 
-  const handlePrayerToggle = () => {
+  const handlePrayerToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
     if (hasPrayed) {
       removePrayer.mutate(request.id);
     } else {
@@ -61,90 +74,128 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(e);
+    setShowDeleteDialog(false);
+  };
+
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-2">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">{request.title}</h3>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>{timeAgo}</span>
-              {request.isPrivate ? (
-                <Lock className="h-4 w-4" />
-              ) : (
-                <Unlock className="h-4 w-4" />
-              )}
+    <>
+      <Card className="w-full">
+        <CardHeader className="space-y-2">
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold">{request.title}</h3>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>{timeAgo}</span>
+                {request.isPrivate ? (
+                  <Lock className="h-4 w-4" />
+                ) : (
+                  <Unlock className="h-4 w-4" />
+                )}
+              </div>
             </div>
+            <Badge variant={statusColors[request.status]}>
+              <div className="flex items-center gap-1">
+                {statusIcons[request.status]}
+                {request.status}
+              </div>
+            </Badge>
           </div>
-          <Badge variant={statusColors[request.status]}>
-            <div className="flex items-center gap-1">
-              {statusIcons[request.status]}
-              {request.status}
+        </CardHeader>
+
+        <CardContent>
+          <p className={isExpanded ? '' : 'line-clamp-3'}>
+            {request.description}
+          </p>
+          {request.description.length > 150 && (
+            <Button
+              variant="link"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+              className="p-0 h-auto font-normal"
+            >
+              {isExpanded ? 'Show less' : 'Read more'}
+            </Button>
+          )}
+
+          {request.tags && request.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {request.tags.map(tag => (
+                <Badge key={tag} variant="outline">
+                  {tag}
+                </Badge>
+              ))}
             </div>
-          </Badge>
-        </div>
-      </CardHeader>
+          )}
+        </CardContent>
 
-      <CardContent>
-        <p className={isExpanded ? '' : 'line-clamp-3'}>
-          {request.description}
-        </p>
-        {request.description.length > 150 && (
-          <Button
-            variant="link"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-0 h-auto font-normal"
-          >
-            {isExpanded ? 'Show less' : 'Read more'}
-          </Button>
-        )}
-
-        {request.tags && request.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {request.tags.map(tag => (
-              <Badge key={tag} variant="outline">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
-      </CardContent>
-
-      <CardFooter className="flex justify-between">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={hasPrayed ? 'default' : 'outline'}
-            size="sm"
-            onClick={handlePrayerToggle}
-            disabled={recordPrayer.isPending || removePrayer.isPending}
-          >
-            <Heart 
-              className={`h-4 w-4 mr-1 ${hasPrayed ? 'fill-current' : ''}`} 
-            />
-            {request.prayerCount} {request.prayerCount === 1 ? 'Prayer' : 'Prayers'}
-          </Button>
-        </div>
-
-        {isOwner && (
+        <CardFooter className="flex justify-between">
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant={hasPrayed ? 'default' : 'outline'}
               size="sm"
-              onClick={onEdit}
+              onClick={handlePrayerToggle}
+              disabled={recordPrayer.isPending || removePrayer.isPending}
             >
-              Edit
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={onDelete}
-            >
-              Delete
+              {(recordPrayer.isPending || removePrayer.isPending) ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Heart 
+                  className={`h-4 w-4 mr-1 ${hasPrayed ? 'fill-current' : ''}`} 
+                />
+              )}
+              {request.prayerCount} {request.prayerCount === 1 ? 'Prayer' : 'Prayers'}
             </Button>
           </div>
-        )}
-      </CardFooter>
-    </Card>
+
+          {isOwner && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(e);
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
+        </CardFooter>
+      </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent onClick={e => e.stopPropagation()}>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete your prayer request.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={e => e.stopPropagation()}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 } 

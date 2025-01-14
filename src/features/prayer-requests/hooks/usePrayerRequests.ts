@@ -158,18 +158,40 @@ export function useRecordPrayer() {
 
   return useMutation({
     mutationFn: (requestId: string) => recordPrayer(requestId, user!.uid),
+    onMutate: async (requestId) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: KEYS.detail(requestId) });
+
+      // Get current prayer request
+      const previousRequest = queryClient.getQueryData<PrayerRequest>(KEYS.detail(requestId));
+
+      // Optimistically update the prayer request
+      if (previousRequest) {
+        queryClient.setQueryData<PrayerRequest>(KEYS.detail(requestId), {
+          ...previousRequest,
+          prayerCount: previousRequest.prayerCount + 1,
+          prayingUsers: [...previousRequest.prayingUsers, user!.uid],
+        });
+      }
+
+      return { previousRequest };
+    },
+    onError: (error, requestId, context) => {
+      // Revert on error
+      if (context?.previousRequest) {
+        queryClient.setQueryData(KEYS.detail(requestId), context.previousRequest);
+      }
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
     onSuccess: (_, requestId) => {
       queryClient.invalidateQueries({ queryKey: KEYS.detail(requestId) });
       toast({
         title: 'Prayer Recorded',
         description: 'Thank you for praying!',
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
       });
     },
   });
@@ -185,18 +207,36 @@ export function useRemovePrayer() {
 
   return useMutation({
     mutationFn: (requestId: string) => removePrayer(requestId, user!.uid),
+    onMutate: async (requestId) => {
+      await queryClient.cancelQueries({ queryKey: KEYS.detail(requestId) });
+
+      const previousRequest = queryClient.getQueryData<PrayerRequest>(KEYS.detail(requestId));
+
+      if (previousRequest) {
+        queryClient.setQueryData<PrayerRequest>(KEYS.detail(requestId), {
+          ...previousRequest,
+          prayerCount: previousRequest.prayerCount - 1,
+          prayingUsers: previousRequest.prayingUsers.filter(id => id !== user!.uid),
+        });
+      }
+
+      return { previousRequest };
+    },
+    onError: (error, requestId, context) => {
+      if (context?.previousRequest) {
+        queryClient.setQueryData(KEYS.detail(requestId), context.previousRequest);
+      }
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
     onSuccess: (_, requestId) => {
       queryClient.invalidateQueries({ queryKey: KEYS.detail(requestId) });
       toast({
         title: 'Prayer Removed',
         description: 'Your prayer has been removed.',
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
       });
     },
   });

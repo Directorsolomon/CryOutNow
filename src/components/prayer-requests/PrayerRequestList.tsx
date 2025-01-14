@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PrayerRequest, getRecentPrayerRequests, deletePrayerRequest } from "../../services/firebase";
 import { PrayerRequestCard } from "./PrayerRequestCard";
 import { useToast } from "../ui/use-toast";
@@ -7,6 +8,7 @@ export function PrayerRequestList() {
   const [requests, setRequests] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadPrayerRequests();
@@ -51,6 +53,10 @@ export function PrayerRequestList() {
     }
   };
 
+  const handleCardClick = (requestId: string) => {
+    navigate(`/prayer-requests/${requestId}`);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -75,11 +81,19 @@ export function PrayerRequestList() {
   return (
     <div className="space-y-4">
       {requests.map((request) => (
-        <PrayerRequestCard
+        <div 
           key={request.id}
-          request={request}
-          onDelete={() => request.id && handleDelete(request.id)}
-        />
+          className="cursor-pointer transition-transform hover:scale-[1.01]"
+          onClick={() => request.id && handleCardClick(request.id)}
+        >
+          <PrayerRequestCard
+            request={request}
+            onDelete={(e) => {
+              e.stopPropagation();
+              request.id && handleDelete(request.id);
+            }}
+          />
+        </div>
       ))}
     </div>
   );

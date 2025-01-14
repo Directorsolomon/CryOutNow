@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Alert, AlertDescription } from "../components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { GoogleSignIn } from "../components/auth/GoogleSignIn";
+import { Separator } from "../components/ui/separator";
 
 const registerSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -26,9 +28,8 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register: signUp } = useAuth();
+  const { register: registerUser, error, setError } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string>("");
   
   const {
     register,
@@ -41,10 +42,10 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError("");
-      await signUp(data.email, data.password);
-      navigate("/");
-    } catch (err) {
-      setError("Failed to create an account. Please try again.");
+      await registerUser(data.email, data.password);
+      navigate("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Failed to create an account. Please try again.");
     }
   };
 
@@ -53,8 +54,19 @@ export default function Register() {
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">Create an account</h1>
         <p className="text-sm text-muted-foreground">
-          Enter your email below to create your account
+          Choose your preferred registration method
         </p>
+      </div>
+
+      <GoogleSignIn />
+      
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <Separator className="w-full" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

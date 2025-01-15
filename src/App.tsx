@@ -6,8 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import { LoadingSpinner } from "./components/ui/loading";
-import { AuthProvider } from "./context/AuthContext";
+import { Loader2 as LoadingSpinner } from "lucide-react";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";
 import { trackPageView } from "./services/analytics";
 
@@ -51,8 +50,7 @@ const App = () => (
   <ErrorBoundary>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <QueryClientProvider client={queryClient}>
-        <ErrorBoundary> {/* Added ErrorBoundary for AuthProvider */}
-          <AuthProvider>
+        <ErrorBoundary>
             <TooltipProvider>
               <Toaster />
               <Sonner />

@@ -1,22 +1,22 @@
-import { Heart, MessageCircle, Share2, MoreVertical } from "lucide-react";
+
+import { useState, lazy, Suspense } from "react";
+import { Heart, MessageCircle, Share2, MoreVertical, Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
-import { PrayerRequest } from "../../services/firebase";
-import { useAuth } from "../../context/AuthContext";
-import { toggleLike } from "../../services/firebase";
-import { useState, lazy, Suspense } from "react";
-import { formatDistanceToNow } from "date-fns";
+import { Badge } from "../ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Badge } from "../ui/badge";
 import { LoadingSpinner } from "../ui/loading";
+import { toggleLike, PrayerRequest } from "../../services/firebase";
 
-// Lazy load Comments component
-const Comments = lazy(() => import("./Comments").then(mod => ({ default: mod.Comments })));
+const Comments = lazy(() => import("./Comments"));
 
 interface PrayerRequestCardProps {
   request: PrayerRequest;
@@ -26,18 +26,39 @@ interface PrayerRequestCardProps {
 
 export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCardProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [isLiked, setIsLiked] = useState(request.userLikes?.includes(user?.uid || "") || false);
-  const [likeCount, setLikeCount] = useState(request.likes);
+  const [likeCount, setLikeCount] = useState(request.likes || 0);
   const [showComments, setShowComments] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLike = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to like prayer requests",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       await toggleLike(request.id!);
       setIsLiked(!isLiked);
       setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+      toast({
+        title: isLiked ? "Like Removed" : "Prayer Request Liked",
+        description: isLiked ? "You've removed your like" : "Thank you for your support",
+      });
     } catch (error) {
-      console.error("Error toggling like:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update like status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -48,22 +69,30 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
         text: request.description,
         url: window.location.href,
       });
+      toast({
+        title: "Shared Successfully",
+        description: "Prayer request has been shared",
+      });
     } catch (error) {
-      console.error("Error sharing:", error);
+      toast({
+        title: "Share Failed",
+        description: "Unable to share prayer request",
+        variant: "destructive",
+      });
     }
   };
 
   const isOwner = user?.uid === request.userId;
 
   return (
-    <Card className="w-full">
+    <Card className="w-full hover:shadow-md transition-shadow duration-200">
       <CardHeader className="flex flex-row items-start justify-between space-y-0">
         <div className="space-y-1">
           <h3 className="font-semibold leading-none tracking-tight">
             {request.title}
           </h3>
           <p className="text-sm text-muted-foreground">
-            {formatDistanceToNow(request.createdAt, { addSuffix: true })}
+            {formatDistanceToNow(new Date(request.createdAt), { addSuffix: true })}
           </p>
         </div>
         {isOwner && (
@@ -91,7 +120,7 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
       <CardContent className="space-y-4">
         <p className="text-sm">{request.description}</p>
         <div className="flex flex-wrap gap-2">
-          {request.tags.map((tag) => (
+          {request.tags?.map((tag) => (
             <Badge key={tag} variant="secondary">
               {tag}
             </Badge>
@@ -106,8 +135,13 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
               size="sm"
               className={isLiked ? "text-primary" : ""}
               onClick={handleLike}
+              disabled={isSubmitting}
             >
-              <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Heart className={`mr-1 h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
+              )}
               {likeCount}
             </Button>
             <Button 
@@ -135,4 +169,4 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
       </CardFooter>
     </Card>
   );
-} 
+}

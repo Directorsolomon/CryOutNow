@@ -1,27 +1,37 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { 
+  User, 
+  signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { auth } from '../lib/firebase';
+import { useToast } from '@/components/ui/use-toast';
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: string | null;
-  setError: (error: string | null) => void;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-};
+  logout: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  clearError: () => void;
+}
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: true,
-  error: null,
-  setError: () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
@@ -39,24 +49,113 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const handleAuthError = (error: any) => {
+    const errorMessage = error.code ? error.code.replace('auth/', '').replace(/-/g, ' ') : error.message;
+    setError(errorMessage);
+    toast({
+      title: "Authentication Error",
+      description: errorMessage,
+      variant: "destructive"
+    });
+  };
+
+  const signIn = async (email: string, password: string) => {
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: 'select_account'
+      setLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Success",
+        description: "Successfully signed in",
       });
-      await signInWithPopup(auth, provider);
     } catch (error: any) {
-      console.error("Google sign-in error:", error);
-      setError(error.message);
+      handleAuthError(error);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const signUp = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      await createUserWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Success",
+        description: "Account created successfully",
+      });
+    } catch (error: any) {
+      handleAuthError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
+      toast({
+        title: "Success",
+        description: "Successfully signed in with Google",
+      });
+    } catch (error: any) {
+      handleAuthError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Success",
+        description: "Successfully logged out",
+      });
+    } catch (error: any) {
+      handleAuthError(error);
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    try {
+      setLoading(true);
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Success",
+        description: "Password reset email sent",
+      });
+    } catch (error: any) {
+      handleAuthError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const clearError = () => setError(null);
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, setError, signInWithGoogle }}>
+    <AuthContext.Provider value={{
+      user,
+      loading,
+      error,
+      signIn,
+      signUp,
+      signInWithGoogle,
+      logout,
+      resetPassword,
+      clearError
+    }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

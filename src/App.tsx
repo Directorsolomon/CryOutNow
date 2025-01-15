@@ -7,7 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { Layout } from "./components/layout/Layout";
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { Loader2 as LoadingSpinner } from "lucide-react";
-import { ErrorBoundary } from "./components/error/ErrorBoundary";
+import { ErrorBoundary } from "./components/error-boundary";
+import { ThemeProvider } from 'next-themes';
 import { trackPageView } from "./services/analytics";
 
 // Lazy load components
@@ -44,58 +45,54 @@ function AnalyticsWrapper({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-import { ThemeProvider } from 'next-themes'
 
 const App = () => (
-  <ErrorBoundary>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AnalyticsWrapper>
-                  <Layout>
-                    <Suspense fallback={<LoadingSpinner />}>
-                      <Routes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Index />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/register" element={<Register />} />
+  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AnalyticsWrapper>
+              <Layout>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-                        {/* Protected Routes */}
-                        <Route
-                          path="/profile"
-                          element={
-                            <ProtectedRoute>
-                              <Profile />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/prayer-requests"
-                          element={
-                            <ProtectedRoute>
-                              <PrayerRequests />
-                            </ProtectedRoute>
-                          }
-                        />
-                        <Route
-                          path="/get-started"
-                          element={<Navigate to="/prayer-requests" replace />}
-                        />
-                      </Routes>
-                    </Suspense>
-                  </Layout>
-                </AnalyticsWrapper>
-              </BrowserRouter>
-            </TooltipProvider>
-          </AuthProvider>
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </ThemeProvider>
-  </ErrorBoundary>
+                    {/* Protected Routes */}
+                    <Route
+                      path="/profile"
+                      element={
+                        <ProtectedRoute>
+                          <Profile />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/prayer-requests"
+                      element={
+                        <ProtectedRoute>
+                          <PrayerRequests />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/get-started"
+                      element={<Navigate to="/prayer-requests" replace />}
+                    />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </AnalyticsWrapper>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ErrorBoundary>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

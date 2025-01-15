@@ -1,13 +1,14 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../lib/firebase';
+import { User, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider } from '../lib/firebase';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   error: string | null;
   setError: (error: string | null) => void;
+  signInWithGoogle: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -38,8 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const signInWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error: any) {
+      setError(error.message);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, setError }}>
+    <AuthContext.Provider value={{ user, loading, error, setError, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

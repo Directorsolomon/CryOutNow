@@ -5,7 +5,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingSpinner } from "./components/ui/loading";
 import { AuthProvider } from "./context/AuthContext";
 import { ErrorBoundary } from "./components/error/ErrorBoundary";

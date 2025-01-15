@@ -13,7 +13,7 @@ import { trackPageView } from "./services/analytics";
 
 // Lazy load components
 const Index = lazy(() => import("./pages/Index"));
-const Login = lazy(() => import("./pages/Login"));
+const Login = lazy(() => import("./pages/auth/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Profile = lazy(() => import("./pages/Profile"));
 const PrayerRequests = lazy(() => import("./pages/PrayerRequests"));

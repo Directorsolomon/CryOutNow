@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { 
   User, 
@@ -8,7 +7,8 @@ import {
   signOut,
   sendPasswordResetEmail,
   GoogleAuthProvider,
-  onAuthStateChanged 
+  onAuthStateChanged,
+  AuthError
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useToast } from '@/components/ui/use-toast';
@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const handleAuthError = (error: any) => {
+  const handleAuthError = (error: AuthError) => {
     const errorMessage = error.code ? error.code.replace('auth/', '').replace(/-/g, ' ') : error.message;
     setError(errorMessage);
     toast({
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Successfully signed in",
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       handleAuthError(error);
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Account created successfully",
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       handleAuthError(error);
     } finally {
       setLoading(false);
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Successfully signed in with Google",
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       handleAuthError(error);
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Successfully logged out",
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       handleAuthError(error);
     }
   };
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Success",
         description: "Password reset email sent",
       });
-    } catch (error: any) {
+    } catch (error: AuthError) {
       handleAuthError(error);
     } finally {
       setLoading(false);

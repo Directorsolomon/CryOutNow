@@ -17,5 +17,22 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Token refresh handling
+auth.onIdTokenChanged(async (user) => {
+  if (user) {
+    const token = await user.getIdToken();
+    localStorage.setItem('authToken', token);
+  } else {
+    localStorage.removeItem('authToken');
+  }
+});
+
+// Force token refresh on interval
+setInterval(async () => {
+  const user = auth.currentUser;
+  if (user) await user.getIdToken(true);
+}, 45 * 60 * 1000); // 45 minutes
+
 export const analytics = typeof window !== 'undefined' ? getAnalytics(app) : null;
 export const googleProvider = new GoogleAuthProvider();

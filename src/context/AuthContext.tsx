@@ -34,6 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Set persistence
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .catch((error) => {
+        console.error("Persistence error:", error);
+      });
+
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {

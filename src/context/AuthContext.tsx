@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { useToast } from '@/components/ui/use-toast';
+import LoadingSpinner from '@/components/ui/loading'; // Assuming this component exists
 
 interface AuthContextType {
   user: User | null;
@@ -34,26 +35,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set persistence
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-      .catch((error) => {
-        console.error("Persistence error:", error);
-      });
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        setUser(user);
-        setLoading(false);
-      },
-      (error) => {
-        setError(error.message);
-        setLoading(false);
-      }
-    );
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUser(user);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen"><LoadingSpinner className="animate-spin" /></div>;
+  }
 
   const handleAuthError = (error: AuthError) => {
     const errorMessage = error.code ? error.code.replace('auth/', '').replace(/-/g, ' ') : error.message;

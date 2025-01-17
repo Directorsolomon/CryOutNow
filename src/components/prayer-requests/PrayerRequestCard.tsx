@@ -1,4 +1,3 @@
-
 import { useState, lazy, Suspense } from "react";
 import { Heart, MessageCircle, Share2, MoreVertical, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -15,6 +14,7 @@ import {
 } from "../ui/dropdown-menu";
 import { LoadingSpinner } from "../ui/loading";
 import { toggleLike, PrayerRequest } from "../../services/firebase";
+import { useNavigate } from "react-router-dom";
 
 const Comments = lazy(() => import("./Comments"));
 
@@ -32,7 +32,8 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
   const [showComments, setShowComments] = useState(false);
   const navigate = useNavigate();
 
-  const handleCommentClick = () => {
+  const handleCommentClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!handleInteraction('comment')) return;
     setShowComments(!showComments);
   };
@@ -59,7 +60,9 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
     return true;
   };
 
-  const handleLike = async () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!handleInteraction('like')) return;
 
     setIsSubmitting(true);

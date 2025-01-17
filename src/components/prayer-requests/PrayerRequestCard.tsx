@@ -30,17 +30,37 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
   const [isLiked, setIsLiked] = useState(request.userLikes?.includes(user?.uid || "") || false);
   const [likeCount, setLikeCount] = useState(request.likes || 0);
   const [showComments, setShowComments] = useState(false);
+  const navigate = useNavigate();
+
+  const handleCommentClick = () => {
+    if (!handleInteraction('comment')) return;
+    setShowComments(!showComments);
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLike = async () => {
+  const handleInteraction = (action: 'like' | 'comment' | 'share') => {
     if (!user) {
       toast({
-        title: "Authentication Required",
-        description: "Please log in to like prayer requests",
+        title: "Sign In Required",
+        description: `Please sign in to ${action} prayer requests`,
         variant: "destructive",
+        action: (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/login')}
+          >
+            Sign In
+          </Button>
+        ),
       });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const handleLike = async () => {
+    if (!handleInteraction('like')) return;
 
     setIsSubmitting(true);
     try {
@@ -63,6 +83,7 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
   };
 
   const handleShare = async () => {
+    if (!handleInteraction('share')) return;
     try {
       await navigator.share({
         title: request.title,
@@ -147,7 +168,7 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setShowComments(!showComments)}
+              onClick={handleCommentClick}
             >
               <MessageCircle className="mr-1 h-4 w-4" />
               Comments

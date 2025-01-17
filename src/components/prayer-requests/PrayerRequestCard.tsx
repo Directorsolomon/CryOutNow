@@ -67,7 +67,8 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
 
     setIsSubmitting(true);
     try {
-      await toggleLike(request.id!);
+      if (!request.id) throw new Error('Request ID is required');
+      await toggleLike(request.id);
       setIsLiked(!isLiked);
       setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
       toast({
@@ -75,6 +76,7 @@ export function PrayerRequestCard({ request, onEdit, onDelete }: PrayerRequestCa
         description: isLiked ? "You've removed your like" : "Thank you for your support",
       });
     } catch (error) {
+      console.error('Like error:', error);
       toast({
         title: "Error",
         description: "Failed to update like status",

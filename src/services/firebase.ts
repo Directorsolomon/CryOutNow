@@ -184,6 +184,7 @@ export const getComments = async (requestId: string) => {
 export const toggleLike = async (requestId: string) => {
   const user = auth.currentUser;
   if (!user) throw new Error('Must be authenticated to like a prayer request');
+  if (!requestId) throw new Error('Request ID is required');
 
   const requestRef = doc(db, 'prayerRequests', requestId);
   const request = await getDoc(requestRef);

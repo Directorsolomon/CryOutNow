@@ -5,7 +5,7 @@ import { useToast } from "../ui/use-toast";
 
 export function PrayerRequestList() {
   const [requests, setRequests] = useState<PrayerRequest[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Existing loading state
   const { toast } = useToast();
 
   useEffect(() => {
@@ -18,6 +18,7 @@ export function PrayerRequestList() {
 
   const loadPrayerRequests = async () => {
     try {
+      setLoading(true); // Set loading to true before fetching
       const recentRequests = await getRecentPrayerRequests(PER_PAGE, page);
       setRequests(prev => page === 1 ? recentRequests : [...prev, ...recentRequests]);
       setHasMore(recentRequests.length === PER_PAGE);
@@ -29,7 +30,7 @@ export function PrayerRequestList() {
         description: "Failed to load prayer requests. Please try again later.",
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // Set loading to false after fetching (success or failure)
     }
   };
 
@@ -83,4 +84,4 @@ export function PrayerRequestList() {
       ))}
     </div>
   );
-} 
+}

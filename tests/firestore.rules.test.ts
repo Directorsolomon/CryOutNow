@@ -212,3 +212,33 @@ describe("User Profile Rules", () => {
     );
   });
 }); 
+import { assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
+import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
+
+describe('Firestore Security Rules', () => {
+  const testEnv = await initializeTestEnvironment({
+    projectId: 'demo-' + Date.now(),
+    firestore: { rules: fs.readFileSync('firestore.rules', 'utf8') }
+  });
+
+  afterAll(async () => {
+    await testEnv.cleanup();
+  });
+
+  it('denies unauthorized prayer request reads', async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(db.collection('prayerRequests').get());
+  });
+
+  it('allows authorized prayer request reads', async () => {
+    const db = testEnv.authenticatedContext('user1').firestore();
+    await assertSucceeds(db.collection('prayerRequests').get());
+  });
+
+  it('enforces data validation on prayer request creation', async () => {
+    const db = testEnv.authenticatedContext('user1').firestore();
+    await assertFails(db.collection('prayerRequests').add({
+      // Missing required fields
+    }));
+  });
+});

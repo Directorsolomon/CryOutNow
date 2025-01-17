@@ -1,3 +1,4 @@
+
 import { Header } from "./Header";
 
 interface LayoutProps {
@@ -8,7 +9,7 @@ export function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <div className="flex-1 container mx-auto px-4 py-6 md:pt-20 flex flex-col md:flex-row gap-6">
+      <div className="flex-1 container mx-auto px-4 pt-20 flex gap-6">
         <main className="flex-1">
           {children}
         </main>
